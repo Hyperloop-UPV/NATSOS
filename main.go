@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	"github.com/Hyperloop-UPV/NATSOS/pkg/adj"
@@ -22,11 +21,11 @@ func main() {
 	}
 
 	// get the ADJ branch from the configuration and print it
-	adjPath, err := adj.GetADJ(cfg.ADJBranch, cfg.ADJPath)
+	adj, err := adj.NewADJ(cfg.ADJBranch, cfg.ADJPath)
 	if err != nil {
-		log.Fatalf("Failed to get ADJ: %v", err)
+		log.Fatalf("Failed to initialize ADJ: %v at %s", err, cfg.ADJPath)
 	}
 
-	fmt.Printf("ADJ path: %s\n", adjPath)
-	fmt.Printf("Configuration loaded successfully:\n%s\n", cfg.ADJBranch)
+	// Print the ADJ info and boards
+	log.Printf("ADJ Info: %+v", adj.Info)
 }
