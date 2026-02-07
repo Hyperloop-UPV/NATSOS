@@ -2,6 +2,7 @@
     "adj-branch": "main",
     "adj-path": "",
     "network": {
-        "interface": "eth0"
+        "interface": "eth0",
+        "backend_addr": "192.168.0.9"
     }
 }

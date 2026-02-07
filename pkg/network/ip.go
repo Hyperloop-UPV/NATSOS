@@ -26,3 +26,18 @@ func AddSubnetMask(ip string, mask int) string {
 
 	return ip + "/" + strconv.Itoa(mask)
 }
+
+// IsValidPort checks if the provided port number is valid (between 1 and 65535).
+func IsValidPort(port int) bool {
+
+	return port > 0 && port < 65536
+}
+
+func FormatIP(ip string, port int) string {
+
+	if !IsValidPort(port) {
+		port = 0
+	}
+
+	return net.JoinHostPort(ip, strconv.Itoa(port))
+}

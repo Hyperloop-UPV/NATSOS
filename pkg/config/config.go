@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/Hyperloop-UPV/NATSOS/pkg/network"
 )
 
 // Config represents the base configuration structure for the application.
@@ -16,7 +18,9 @@ type Config struct {
 }
 
 type Network struct {
-	Interface string `json:"interface"`
+	Interface   string `json:"interface"`
+	BackendAddr string `json:"backend_addr"`
+	BackendPort int    `json:"backend_port"`
 }
 
 // LoadConfig reads and parses a JSON configuration file.
@@ -34,6 +38,12 @@ func LoadConfig(filePath string) (*Config, error) {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
+	// Perform additional checks on the configuration values
+	err = additionalChecks(&cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	return &cfg, nil
 }
 
@@ -44,4 +54,13 @@ func (c *Config) String() string {
 		return fmt.Sprintf("Config{Error: %v}", err)
 	}
 	return string(data)
+}
+
+func additionalChecks(cfg *Config) error {
+
+	// Check that backend address is valid
+	if !network.IsValidIPv4(cfg.Network.BackendAddr) {
+		return fmt.Errorf("invalid backend address: %s", cfg.Network.BackendAddr)
+	}
+	return nil
 }
