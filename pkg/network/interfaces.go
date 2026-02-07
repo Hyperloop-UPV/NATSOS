@@ -8,6 +8,8 @@ import (
 	"github.com/Hyperloop-UPV/NATSOS/pkg/utils"
 )
 
+// External Interfaces
+
 // GetExternalInterface returns a list of available network interfaces on the system.
 func GetExternalInterface() ([]string, error) {
 
@@ -37,7 +39,7 @@ func doesInterfaceExist(iface string) (bool, error) {
 }
 
 // SetupExternalInterface configures the specified network interface with the given IP address and brings it up.
-func SetupExternalInterface(iface string, ip string) error {
+func SetUpExternalInterface(iface string, ip string) error {
 
 	// Check if the interface exists
 	exists, err := doesInterfaceExist(iface)
@@ -63,8 +65,10 @@ func SetupExternalInterface(iface string, ip string) error {
 	return nil
 }
 
+// Dummy Interfaces
+
 // SetupDummyInterface creates a dummy network interface with the specified name and IP address, and brings it up.
-func SetupDummyInterface(name string, ip string) error {
+func SetUpDummyInterface(name string, ip string) error {
 
 	dummyName := generateDummyInterfaceName(name)
 
