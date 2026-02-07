@@ -10,8 +10,13 @@ import (
 // Extend this struct with your specific configuration fields.
 type Config struct {
 	// Application settings
-	ADJBranch string `json:"adj-branch"`
-	ADJPath   string `json:"adj-path"` // Path to the ADJ repository empty for download usingg git
+	ADJBranch string  `json:"adj-branch"`
+	ADJPath   string  `json:"adj-path"` // Path to the ADJ repository empty for download usingg git
+	Network   Network `json:"network"`
+}
+
+type Network struct {
+	Interface string `json:"interface"`
 }
 
 // LoadConfig reads and parses a JSON configuration file.
