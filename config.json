@@ -1,9 +1,7 @@
 {
-    "adj-branch": "main",
+    "adj-branch": "test-sw",
     "adj-path": "",
     "network": {
-        "interface": "eth0",
-        "backend_addr": "192.168.0.9",
-        "backend_port": 50400
+        "interface": "eth0"
     }
 }

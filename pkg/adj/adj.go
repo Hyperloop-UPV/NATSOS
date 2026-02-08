@@ -147,5 +147,14 @@ func NewADJ(AdjBranch string, AdjPath string) (ADJ, error) {
 		Boards: boards,
 	}
 
+	// Check that ADJ has backend address and UDP port defined.
+	if adj.Info.Addresses["backend"] == "" {
+		return ADJ{}, fmt.Errorf("ADJ is missing backend address")
+	}
+
+	if adj.Info.Ports["UDP"] == 0 {
+		return ADJ{}, fmt.Errorf("ADJ is missing UDP port")
+	}
+
 	return adj, nil
 }

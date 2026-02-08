@@ -41,7 +41,7 @@ func main() {
 	defer cancel()
 
 	// Configure the boards and create plate runtimes
-	err = configureBoards(*cfg, adj, ctx)
+	err = configureBoards(adj, ctx)
 	if err != nil {
 		log.Fatalf("Failed to configure boards: %v", err)
 	}
@@ -51,12 +51,10 @@ func main() {
 
 }
 
-func configureBoards(cfg config.Config, adj adj.ADJ, ctx context.Context) error {
-
-	fmt.Printf("Backend Port%d", cfg.Network.BackendPort)
+func configureBoards(adj adj.ADJ, ctx context.Context) error {
 
 	// Obtain backend address from configuration
-	backendAddr, err := net.ResolveUDPAddr("udp", network.FormatIP(cfg.Network.BackendAddr, cfg.Network.BackendPort))
+	backendAddr, err := net.ResolveUDPAddr("udp", network.FormatIP(adj.Info.Addresses["backend"], int(adj.Info.Ports["UDP"])))
 	if err != nil {
 		return fmt.Errorf("failed to resolve backend address: %v", err)
 	}
