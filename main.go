@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"log"
+	"net"
 
 	"github.com/Hyperloop-UPV/NATSOS/pkg/adj"
 	"github.com/Hyperloop-UPV/NATSOS/pkg/config"
 	"github.com/Hyperloop-UPV/NATSOS/pkg/network"
+	"github.com/Hyperloop-UPV/NATSOS/pkg/plate"
 )
 
 func main() {
@@ -21,27 +25,62 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Set up the network configuration
-	if err := network.SetupNetwork(); err != nil {
-		log.Fatalf("Failed to setup network: %v", err)
-	}
-
-	err = network.SetupExternalInterface(cfg.Network.Interface, "192.168.0.1/16")
-	if err != nil {
-		log.Fatalf("Failed to setup external interface: %v", err)
-	}
 	// get the ADJ branch from the configuration and print it
 	adj, err := adj.NewADJ(cfg.ADJBranch, cfg.ADJPath)
 	if err != nil {
 		log.Fatalf("Failed to initialize ADJ: %v at %s", err, cfg.ADJPath)
 	}
 
-	// create a dummy interface for each board in the ADJ
-	for _, board := range adj.Boards {
-
-		network.SetupDummyInterface(board.Name, board.IP)
+	// Set up the network configuration
+	if err := network.SetUpNetwork(cfg.Network.Interface, "192.168.0.1/16"); err != nil {
+		log.Fatalf("Failed to setup network: %v", err)
 	}
 
-	// Print the ADJ info and boards
-	log.Printf("ADJ Info: %+v", adj.Info)
+	// Define context for the plate runtimes
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Configure the boards and create plate runtimes
+	err = configureBoards(*cfg, adj, ctx)
+	if err != nil {
+		log.Fatalf("Failed to configure boards: %v", err)
+	}
+
+	// Block forever
+	select {}
+
+}
+
+func configureBoards(cfg config.Config, adj adj.ADJ, ctx context.Context) error {
+
+	fmt.Printf("Backend Port%d", cfg.Network.BackendPort)
+
+	// Obtain backend address from configuration
+	backendAddr, err := net.ResolveUDPAddr("udp", network.FormatIP(cfg.Network.BackendAddr, cfg.Network.BackendPort))
+	if err != nil {
+		return fmt.Errorf("failed to resolve backend address: %v", err)
+	}
+
+	// For each board
+	for _, board := range adj.Boards {
+
+		// Set up a dummy interface for the board
+		err := network.SetUpDummyInterface(board.Name, board.IP)
+		if err != nil {
+			return fmt.Errorf("failed to set up dummy interface for board %s: %v", board.Name, err)
+		}
+
+		// Create a plate runtime for the board
+		plateRuntime, err := plate.NewPlateRuntime(board, backendAddr)
+		if err != nil {
+			return fmt.Errorf("failed to create plate runtime for board %s: %v", board.Name, err)
+		}
+
+		// Start the plate runtime
+		plateRuntime.Start(ctx)
+		log.Printf("Plate runtime created for board %s", plateRuntime.Board.Name)
+	}
+
+	return nil
+
 }
