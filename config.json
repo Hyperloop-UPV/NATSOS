@@ -1,5 +1,5 @@
 {
-    "adj-branch": "test-sw",
+    "adj-branch": "main",
     "adj-path": "",
     "network": {
         "interface": "eth0"

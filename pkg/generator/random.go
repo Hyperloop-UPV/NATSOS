@@ -38,7 +38,11 @@ func (gene *RandomGenerator) Generate(boardName string, pkt adj.Packet) ([]byte,
 		// For enums
 		if strings.Contains(meas.Type, "enum") {
 			// Enum: pick index (0..len-1) or value; here we encode as uint8 index
-			//TODO: implement enum generation
+			err := binary.Write(buf, binary.LittleEndian, uint8(gene.r.Intn(len(meas.EnumValues))))
+			if err != nil {
+				return nil, err
+			}
+
 		} else if meas.Type == "bool" {
 			err := binary.Write(buf, binary.LittleEndian, gene.r.Int31n(2) == 1)
 			if err != nil {
