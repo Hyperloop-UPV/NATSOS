@@ -42,7 +42,7 @@ func main() {
 	defer cancel()
 
 	// Configure the boards and create plate runtimes
-	err = configureBoards(adj, ctx)
+	err = configureBoards(adj, *cfg, ctx)
 	if err != nil {
 		log.Fatalf("Failed to configure boards: %v", err)
 	}
@@ -52,7 +52,7 @@ func main() {
 
 }
 
-func configureBoards(adj adj.ADJ, ctx context.Context) error {
+func configureBoards(adj adj.ADJ, cfg config.Config, ctx context.Context) error {
 
 	// Obtain backend address from configuration
 	backendAddr, err := net.ResolveUDPAddr("udp", network.FormatIP(adj.Info.Addresses["backend"], int(adj.Info.Ports["UDP"])))
@@ -70,7 +70,7 @@ func configureBoards(adj adj.ADJ, ctx context.Context) error {
 		}
 
 		// Create a plate runtime for the board
-		plateRuntime, err := plate.NewPlateRuntime(board, backendAddr, 100*time.Millisecond) // Default period of 100ms for all packets, can be customized later
+		plateRuntime, err := plate.NewPlateRuntime(board, backendAddr, time.Duration(cfg.InitialPeriod)*time.Millisecond) // Default period of 100ms for all packets, can be customized later
 		if err != nil {
 			return fmt.Errorf("failed to create plate runtime for board %s: %v", board.Name, err)
 		}
