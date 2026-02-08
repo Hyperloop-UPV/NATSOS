@@ -3,5 +3,6 @@
     "adj-path": "",
     "network": {
         "interface": "eth0"
-    }
+    },
+    "initial-period-ms": 500
 }
