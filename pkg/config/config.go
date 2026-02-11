@@ -13,7 +13,7 @@ type Config struct {
 	ADJBranch     string  `json:"adj-branch"`
 	ADJPath       string  `json:"adj-path"` // Path to the ADJ repository empty for download usingg git
 	Network       Network `json:"network"`
-	InitialPeriod uint64  `json:"initial-period"` // Initial period for packet generation in milliseconds
+	InitialPeriod uint64  `json:"initial-period-ms"` // Initial period for packet generation in milliseconds
 }
 
 type Network struct {
@@ -53,7 +53,16 @@ func (c *Config) String() string {
 	return string(data)
 }
 
+// additional Checks ensure that config.json match specifications
 func additionalChecks(cfg *Config) error {
+
+	// Initial period must be positive
+	if cfg.InitialPeriod <= 0 {
+		return fmt.Errorf(
+			"Config{Error: initial-period-ms must be a positive integer higher than 0 and %d is not}",
+			cfg.InitialPeriod,
+		)
+	}
 
 	return nil
 }

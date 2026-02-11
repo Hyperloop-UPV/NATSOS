@@ -60,6 +60,8 @@ func configureBoards(adj adj.ADJ, cfg config.Config, ctx context.Context) error 
 		return fmt.Errorf("failed to resolve backend address: %v", err)
 	}
 
+	period := time.Duration(cfg.InitialPeriod) * time.Millisecond
+
 	// For each board
 	for _, board := range adj.Boards {
 
@@ -70,7 +72,7 @@ func configureBoards(adj adj.ADJ, cfg config.Config, ctx context.Context) error 
 		}
 
 		// Create a plate runtime for the board
-		plateRuntime, err := plate.NewPlateRuntime(board, backendAddr, time.Duration(cfg.InitialPeriod)*time.Millisecond) // Default period of 100ms for all packets, can be customized later
+		plateRuntime, err := plate.NewPlateRuntime(board, backendAddr, period)
 		if err != nil {
 			return fmt.Errorf("failed to create plate runtime for board %s: %v", board.Name, err)
 		}
