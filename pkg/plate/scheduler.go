@@ -9,7 +9,7 @@ import (
 // Start starts the plate runtime, which runs a goroutine for each data packet defined in the board. Each goroutine generates and sends packets at the specified period until the context is cancelled.
 func (plate *PlateRuntime) Start(ctx context.Context) {
 
-	for _, pkt := range plate.packets {
+	for _, pkt := range plate.Packets {
 		go pkt.Run(ctx, plate.Conn)
 	}
 }

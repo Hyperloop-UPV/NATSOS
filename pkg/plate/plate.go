@@ -38,11 +38,11 @@ func NewPlateRuntime(board adj.Board, remoteAddr *net.UDPAddr, period time.Durat
 func (plate *PlateRuntime) applyADJBoardConfig(period time.Duration) {
 
 	// Initialize measurements
-	plate.measurements = make(map[MeasurementID]*MeasurementState)
+	plate.Measurements = make(map[MeasurementID]*MeasurementState)
 
 	// Define each board
 	for _, measure := range plate.Board.Measurements {
-		plate.measurements[MeasurementID(measure.Id)] = NewMeasurementState(measure)
+		plate.Measurements[MeasurementID(measure.Id)] = NewMeasurementState(measure)
 
 	}
 
@@ -58,12 +58,12 @@ func (plate *PlateRuntime) applyADJBoardConfig(period time.Duration) {
 
 		// For each variable in the packet, find the corresponding measurement state and add it to the packet runtime
 		for _, measure := range pkt.Variables {
-			if meas, exists := plate.measurements[MeasurementID(measure.Id)]; exists {
+			if meas, exists := plate.Measurements[MeasurementID(measure.Id)]; exists {
 				measStates = append(measStates, meas)
 			}
 		}
 
-		plate.packets = append(plate.packets, &PacketRuntime{
+		plate.Packets = append(plate.Packets, &PacketRuntime{
 			Packet:       pkt,
 			Period:       period,
 			Measurements: measStates,

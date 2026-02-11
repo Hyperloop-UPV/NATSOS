@@ -43,26 +43,31 @@ func main() {
 	defer cancel()
 
 	// Configure the boards and create plate runtimes
-	err = configureBoards(adj, *cfg, ctx)
+	boardGenerator, err := configureBoards(adj, *cfg, ctx)
 	if err != nil {
 		log.Fatalf("Failed to configure boards: %v", err)
 	}
 
-	go control.StartControlServer(cfg.Network.ControlPort)
+	go control.StartControlServer(cfg.Network.ControlPort, boardGenerator)
 
 	// Block forever
 	select {}
 
 }
 
-func configureBoards(adj adj.ADJ, cfg config.Config, ctx context.Context) error {
+func configureBoards(adj adj.ADJ, cfg config.Config, ctx context.Context) (plate.PlateGenerators, error) {
 
 	// Obtain backend address from configuration
 	backendAddr, err := net.ResolveUDPAddr("udp", network.FormatIP(adj.Info.Addresses["backend"], int(adj.Info.Ports["UDP"])))
 	if err != nil {
-		return fmt.Errorf("failed to resolve backend address: %v", err)
+		return nil, fmt.Errorf("failed to resolve backend address: %v", err)
 	}
 
+	// generator runtime
+
+	runtimeGenerators := make(map[string]plate.PlateRuntime)
+
+	// define period
 	period := time.Duration(cfg.InitialPeriod) * time.Millisecond
 
 	// For each board
@@ -71,20 +76,24 @@ func configureBoards(adj adj.ADJ, cfg config.Config, ctx context.Context) error 
 		// Set up a dummy interface for the board
 		err := network.SetUpDummyInterface(board.Name, board.IP)
 		if err != nil {
-			return fmt.Errorf("failed to set up dummy interface for board %s: %v", board.Name, err)
+			return nil, fmt.Errorf("failed to set up dummy interface for board %s: %v", board.Name, err)
 		}
 
 		// Create a plate runtime for the board
 		plateRuntime, err := plate.NewPlateRuntime(board, backendAddr, period)
 		if err != nil {
-			return fmt.Errorf("failed to create plate runtime for board %s: %v", board.Name, err)
+			return nil, fmt.Errorf("failed to create plate runtime for board %s: %v", board.Name, err)
 		}
 
 		// Start the plate runtime
 		plateRuntime.Start(ctx)
 		log.Printf("Plate runtime created for board %s", plateRuntime.Board.Name)
+
+		// Store board
+
+		runtimeGenerators[board.Name] = *plateRuntime
 	}
 
-	return nil
+	return runtimeGenerators, nil
 
 }

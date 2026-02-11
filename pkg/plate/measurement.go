@@ -3,6 +3,7 @@ package plate
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/Hyperloop-UPV/NATSOS/pkg/adj"
 	"github.com/Hyperloop-UPV/NATSOS/pkg/generator"
@@ -28,7 +29,9 @@ func (m *MeasurementState) WriteTo(w io.Writer) error {
 	if gen == nil {
 		return fmt.Errorf("generator not configured")
 	}
-
+	if m.Measurement.Id == "output_dead_time_ns" {
+		fmt.Println("dfasf")
+	}
 	data, err := gen.Generate(m.Measurement)
 	if err != nil {
 		return err
@@ -38,4 +41,31 @@ func (m *MeasurementState) WriteTo(w io.Writer) error {
 	_, err = w.Write(data)
 	return err
 
+}
+
+// SetGenerator modifys the generator of the measurement
+
+func (m *MeasurementState) SetGenerator(newG string) error {
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Random generator
+	if strings.EqualFold(newG, "r") {
+		m.Generator = generator.SelectRandomGenerator(m.Measurement)
+		return nil
+	}
+
+	val, err := generator.ParseValue(m.Measurement, newG)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(" sdf", val)
+
+	m.Generator = &generator.FixedGenerator{
+		Value: val,
+	}
+
+	return nil
 }
