@@ -1,12 +1,12 @@
 package plate
 
 import (
-	mrand "math/rand"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/Hyperloop-UPV/NATSOS/pkg/adj"
+	"github.com/Hyperloop-UPV/NATSOS/pkg/generator"
 )
 
 // Define MeasurementID as an string
@@ -33,7 +33,7 @@ type PacketRuntime struct {
 
 type MeasurementState struct {
 	Measurement adj.Measurement
-	Generator   *mrand.Rand
+	Generator   generator.Generator
 
 	mu sync.RWMutex
 }

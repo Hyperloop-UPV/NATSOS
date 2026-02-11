@@ -20,6 +20,7 @@ func (pkt *PacketRuntime) Run(ctx context.Context, conn *net.UDPConn) {
 	pkt.mu.RLock()
 	period := pkt.Period
 	pkt.mu.RUnlock()
+
 	ticker := time.NewTicker(period)
 	defer ticker.Stop()
 

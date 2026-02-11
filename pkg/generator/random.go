@@ -1,84 +1,104 @@
 package generator
 
+// random.go contains all the random generetors used by each mesurement of each plate, for enums, numerica and bool
+
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	mrand "math/rand"
-	"strings"
-	"time"
 
 	"github.com/Hyperloop-UPV/NATSOS/pkg/adj"
 )
 
-type RandomGenerator struct {
-	r *mrand.Rand
+// All functions of this file are an adaptation of @JFisica's packet sender
+
+// Enum generator
+type RandomEnumGenerator struct {
+	RNG *mrand.Rand
 }
 
-// NewRandomGenerator creates a new RandomGenerator with a random seed based on the current time.
-func NewRandomGenerator() *RandomGenerator {
-	seed := time.Now().UnixNano()
-	return &RandomGenerator{r: mrand.New(mrand.NewSource(seed))}
+func (g *RandomEnumGenerator) Generate(m adj.Measurement) ([]byte, error) {
+
+	// This should not occuer due to ADJ-Validator
+	if len(m.EnumValues) == 0 {
+		return nil, fmt.Errorf("enum without values")
+	}
+
+	//! IMPORTANT: enums are defined as uint8
+	// Generate Value among the possible enum values
+	val := uint8(g.RNG.Intn(len(m.EnumValues)))
+
+	// Write buffer
+	buf := new(bytes.Buffer)
+	err := binary.Write(buf, binary.LittleEndian, val)
+
+	return buf.Bytes(), err
 }
 
-// Generate creates a random packet based on the given board name and packet definition. It encodes the packet ID and each measurement value according to their types and ranges. Based on @JFisica's packet-sender
-func (gene *RandomGenerator) Generate(boardName string, pkt adj.Packet) ([]byte, error) {
-	_ = boardName // reserved for future per-board logic
+// Bool random generator
+type RandomBoolGenerator struct {
+	RNG *mrand.Rand
+}
+
+func (g *RandomBoolGenerator) Generate(m adj.Measurement) ([]byte, error) {
+
+	// Select 1 or 0 for eneum
+	val := g.RNG.Int31n(2) == 1
+
+	buf := new(bytes.Buffer)
+	err := binary.Write(buf, binary.LittleEndian, val)
+
+	return buf.Bytes(), err
+}
+
+// Numeric geneator
+type RandomNumericGenerator struct {
+	RNG *mrand.Rand
+}
+
+func (g *RandomNumericGenerator) Generate(m adj.Measurement) ([]byte, error) {
+
+	var number float64
+
+	// Not warining range, completly random
+	if len(m.WarningRange) == 0 {
+
+		number = MapNumberToRange(
+			g.RNG.Float64(),
+			m.WarningRange,
+			m.Type,
+		)
+
+	} else if m.WarningRange[0] != nil &&
+		m.WarningRange[1] != nil { // if there is upper and lower range
+
+		low := *m.WarningRange[0] * 0.8
+		high := *m.WarningRange[1] * 1.2
+
+		number = MapNumberToRange(
+			g.RNG.Float64(),
+			[]*float64{&low, &high},
+			m.Type,
+		)
+
+	} else {
+
+		number = MapNumberToRange(
+			g.RNG.Float64(),
+			[]*float64{},
+			m.Type,
+		)
+	}
 
 	buf := new(bytes.Buffer)
 
-	// First: header with packet ID (uint16)
-	err := binary.Write(buf, binary.LittleEndian, pkt.Id)
-	if err != nil {
-		return nil, err
-	}
+	err := WriteNumberAsBytes(number, m.Type, buf)
 
-	// Second: each mesuearement value, encoded according to its type and enum values
-	for _, meas := range pkt.Variables {
-
-		// For enums
-		if strings.Contains(meas.Type, "enum") {
-			// Enum: pick index (0..len-1) or value; here we encode as uint8 index
-			err := binary.Write(buf, binary.LittleEndian, uint8(gene.r.Intn(len(meas.EnumValues))))
-			if err != nil {
-				return nil, err
-			}
-
-		} else if meas.Type == "bool" {
-			err := binary.Write(buf, binary.LittleEndian, gene.r.Int31n(2) == 1)
-			if err != nil {
-				return nil, err
-			}
-		} else if meas.Type != "string" {
-
-			var number float64
-
-			// For numbers, we consider the warning range as the most interesting to generate values around, so we use it as the main range. If it's not specified, we fallback to the full type range.
-			if len(meas.WarningRange) == 0 {
-
-				number = MapNumberToRange(gene.r.Float64(), meas.WarningRange, meas.Type)
-
-			} else if meas.WarningRange[0] != nil && meas.WarningRange[1] != nil {
-				low := *meas.WarningRange[0] * 0.8
-				high := *meas.WarningRange[1] * 1.2
-				number = MapNumberToRange(gene.r.Float64(), []*float64{&low, &high}, meas.Type)
-
-			} else {
-				// Fallback if any bound is nil
-				number = MapNumberToRange(gene.r.Float64(), []*float64{}, meas.Type)
-			}
-
-			err = WriteNumberAsBytes(number, meas.Type, buf)
-			if err != nil {
-				return nil, err
-			}
-
-		}
-
-	}
-	return buf.Bytes(), nil
+	return buf.Bytes(), err
 }
 
-// mapNumberToRange maps a [0,1) random number to the given range for the specified type. If the range is empty, it maps to [0, max(type)]. Based on @JFisica's packet-sender.
+// mapNumberToRange maps a [0,1) random number to the given range for the specified type. If the range is empty, it maps to [0, max(type)]
 func MapNumberToRange(number float64, numberRange []*float64, numberType string) float64 {
 	if len(numberRange) == 0 {
 		return number * getTypeMaxValue(numberType)

@@ -2,7 +2,6 @@ package plate
 
 import (
 	"fmt"
-	mrand "math/rand"
 	"net"
 	"time"
 
@@ -41,12 +40,10 @@ func (plate *PlateRuntime) applyADJBoardConfig(period time.Duration) {
 	// Initialize measurements
 	plate.measurements = make(map[MeasurementID]*MeasurementState)
 
+	// Define each board
 	for _, measure := range plate.Board.Measurements {
+		plate.measurements[MeasurementID(measure.Id)] = NewMeasurementState(measure)
 
-		plate.measurements[MeasurementID(measure.Id)] = &MeasurementState{
-			Measurement: measure,
-			Generator:   mrand.New(mrand.NewSource(time.Now().UnixNano())), // Create a new random generator for each measurement
-		}
 	}
 
 	// Initialize packets
@@ -59,6 +56,7 @@ func (plate *PlateRuntime) applyADJBoardConfig(period time.Duration) {
 
 		var measStates []*MeasurementState
 
+		// For each variable in the packet, find the corresponding measurement state and add it to the packet runtime
 		for _, measure := range pkt.Variables {
 			if meas, exists := plate.measurements[MeasurementID(measure.Id)]; exists {
 				measStates = append(measStates, meas)
