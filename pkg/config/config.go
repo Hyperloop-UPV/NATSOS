@@ -17,7 +17,8 @@ type Config struct {
 }
 
 type Network struct {
-	Interface string `json:"interface"`
+	Interface   string `json:"interface"`
+	ControlPort int    `json:"control-port"`
 }
 
 // LoadConfig reads and parses a JSON configuration file.

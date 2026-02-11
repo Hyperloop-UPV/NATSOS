@@ -2,7 +2,8 @@
     "adj-branch": "main",
     "adj-path": "",
     "network": {
-        "interface": "eth0"
+        "interface": "eth0",
+        "control-port": 2000
     },
     "initial-period-ms": 500
 }

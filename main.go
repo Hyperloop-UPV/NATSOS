@@ -10,6 +10,7 @@ import (
 
 	"github.com/Hyperloop-UPV/NATSOS/pkg/adj"
 	"github.com/Hyperloop-UPV/NATSOS/pkg/config"
+	"github.com/Hyperloop-UPV/NATSOS/pkg/control"
 	"github.com/Hyperloop-UPV/NATSOS/pkg/network"
 	"github.com/Hyperloop-UPV/NATSOS/pkg/plate"
 )
@@ -46,6 +47,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to configure boards: %v", err)
 	}
+
+	go control.StartControlServer(cfg.Network.ControlPort)
 
 	// Block forever
 	select {}
