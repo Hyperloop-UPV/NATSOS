@@ -16,3 +16,9 @@ func RunCommand(name string, args ...string) error {
 
 	return err
 }
+
+func RunCommandSilent(name string, args ...string) error {
+
+	cmd := exec.Command(name, args...)
+	return cmd.Run()
+}

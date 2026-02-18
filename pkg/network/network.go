@@ -1,6 +1,10 @@
 package network
 
-import "github.com/Hyperloop-UPV/NATSOS/pkg/utils"
+import (
+	"log"
+
+	"github.com/Hyperloop-UPV/NATSOS/pkg/utils"
+)
 
 // Set up Network Configuration
 
@@ -13,14 +17,15 @@ func SetUpNetwork(iface string, ip string) error {
 	}
 
 	// Allow the use of dummy interfaces
-	if err := utils.RunCommand("modprobe", "dummy"); err != nil {
+	if err := utils.RunCommandSilent("modprobe", "dummy"); err != nil {
 		return err
 	}
 
 	// Enable IP forwarding
-	if err := utils.RunCommand("sysctl", "-w", "net.ipv4.ip_forward=1"); err != nil {
+	if err := utils.RunCommandSilent("sysctl", "-w", "net.ipv4.ip_forward=1"); err != nil {
 		return err
 	}
 
+	log.Printf("Network configured successfully with interface %s and IP %s", iface, ip)
 	return nil
 }

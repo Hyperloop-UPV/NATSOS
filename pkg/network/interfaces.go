@@ -51,19 +51,21 @@ func SetUpExternalInterface(iface string, ip string) error {
 	}
 
 	// Remove any existing IP addresses from the interface
-	if err := utils.RunCommand("ip", "addr", "flush", "dev", iface); err != nil {
+	if err := utils.RunCommandSilent("ip", "addr", "flush", "dev", iface); err != nil {
 		return err
 	}
 
 	// Add the new IP address to the interface
-	if err := utils.RunCommand("ip", "addr", "add", ip, "dev", iface); err != nil {
+	if err := utils.RunCommandSilent("ip", "addr", "add", ip, "dev", iface); err != nil {
 		return err
 	}
 
 	// Bring the interface up
-	if err := utils.RunCommand("ip", "link", "set", iface, "up"); err != nil {
+	if err := utils.RunCommandSilent("ip", "link", "set", iface, "up"); err != nil {
 		return err
 	}
+
+	fmt.Printf("Interface %s configured with IP %s and brought up\n", iface, ip)
 
 	return nil
 }
@@ -83,17 +85,17 @@ func SetUpDummyInterface(name string, ip string) error {
 	dummyIP := AddSubnetMask(ip, 16)
 
 	// Create the dummy interface
-	if err := utils.RunCommand("ip", "link", "add", dummyName, "type", "dummy"); err != nil {
+	if err := utils.RunCommandSilent("ip", "link", "add", dummyName, "type", "dummy"); err != nil {
 		return err
 	}
 
 	// Add the IP address to the dummy interface
-	if err := utils.RunCommand("ip", "addr", "add", dummyIP, "dev", dummyName); err != nil {
+	if err := utils.RunCommandSilent("ip", "addr", "add", dummyIP, "dev", dummyName); err != nil {
 		return err
 	}
 
 	// Bring the dummy interface up
-	if err := utils.RunCommand("ip", "link", "set", dummyName, "up"); err != nil {
+	if err := utils.RunCommandSilent("ip", "link", "set", dummyName, "up"); err != nil {
 		return err
 	}
 
